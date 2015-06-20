@@ -227,6 +227,8 @@ Blockly.FieldTextInput.prototype.validate_ = function() {
 Blockly.FieldTextInput.prototype.resizeEditor_ = function() {
   var div = Blockly.WidgetDiv.DIV;
   var bBox = this.fieldGroup_.getBBox();
+  //fix scale for a constant size text editor
+  bBox.width /= Blockly.mainWorkspace.scale;
   div.style.width = bBox.width + 'px';
   var xy = this.getAbsoluteXY_();
   // In RTL mode block fields and LTR input fields the left edge moves,
