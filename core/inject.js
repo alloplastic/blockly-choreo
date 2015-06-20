@@ -142,6 +142,7 @@ Blockly.parseOptions_ = function(options) {
   if (hasCss === undefined) {
     hasCss = true;
   }
+
   var grid = options['grid'] || {};
   if (!grid['spacing']) {
     grid['spacing'] = 0;
@@ -158,6 +159,7 @@ Blockly.parseOptions_ = function(options) {
   }
   grid['snap'] = grid['spacing'] > 0 && !!grid['snap'];
   var pathToMedia = 'https://blockly-demo.appspot.com/static/media/';
+
   if (options['media']) {
     pathToMedia = options['media'];
   } else if (options['path']) {
@@ -183,7 +185,9 @@ Blockly.parseOptions_ = function(options) {
     languageTree: languageTree,
     gridOptions: grid,
     enableRealtime: enableRealtime,
-    realtimeOptions: realtimeOptions
+    realtimeOptions: realtimeOptions,
+    enableZoom: options['zoom'],
+    zoomOptions: options['zoomOptions']
   };
 };
 
@@ -332,6 +336,7 @@ Blockly.createMainWorkspace_ = function(svg, options) {
   options.parentWorkspace = null;
   options.getMetrics = Blockly.getMainWorkspaceMetrics_;
   options.setMetrics = Blockly.setMainWorkspaceMetrics_;
+  options.svg = svg;  // restored after merge to maintain zoom functionality
   var mainWorkspace = new Blockly.WorkspaceSvg(options);
   svg.appendChild(mainWorkspace.createDom('blocklyMainBackground'));
   mainWorkspace.markFocused();
@@ -417,6 +422,17 @@ Blockly.init_ = function(mainWorkspace) {
   Blockly.bindEvent_(window, 'resize', null,
                      function() {Blockly.svgResize(mainWorkspace);});
 
+  Blockly.bindEvent_(svg, 'mousedown', null, Blockly.onMouseDown_);
+  //mouse-wheel for firefox
+  Blockly.bindEvent_(svg, 'DOMMouseScroll', null, Blockly.onMouseWheel_);
+  //mouse-wheel for other browsers
+  Blockly.bindEvent_(svg, 'mousewheel', null, Blockly.onMouseWheel_);
+  //mouse-move for tracking mouse position
+  Blockly.bindEvent_(svg, 'mousemove', null, Blockly.onMouseMoveTracking_);
+  Blockly.bindEvent_(svg, 'contextmenu', null, Blockly.onContextMenu_);
+  Blockly.bindEvent_(Blockly.WidgetDiv.DIV, 'contextmenu', null,
+                     Blockly.onContextMenu_);
+
   if (!Blockly.documentEventsBound_) {
     // Only bind the window/document events once.
     // Destroying and reinjecting Blockly should not bind again.
@@ -456,6 +472,20 @@ Blockly.init_ = function(mainWorkspace) {
   if (options.hasScrollbars) {
     mainWorkspace.scrollbar = new Blockly.ScrollbarPair(mainWorkspace);
     mainWorkspace.scrollbar.resize();
+  }
+  if (Blockly.enableZoom != undefined) {
+    Blockly.mainWorkspace.zooming = Blockly.enableZoom;
+  }
+  if (Blockly.zoomOptions) {
+    if (Blockly.zoomOptions.maxScale) {
+      Blockly.mainWorkspace.maxScale = Blockly.zoomOptions.maxScale;
+    }
+    if (Blockly.zoomOptions.minScale) {
+      Blockly.mainWorkspace.minScale = Blockly.zoomOptions.minScale;
+    }
+    if (Blockly.zoomOptions.scaleSpeed) {
+      Blockly.mainWorkspace.scaleSpeed = Blockly.zoomOptions.scaleSpeed;
+    }
   }
 
   // Load the sounds.

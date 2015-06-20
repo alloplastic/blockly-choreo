@@ -398,7 +398,7 @@ Blockly.BlockSvg.prototype.onMouseDown_ = function(e) {
     // Record the current mouse position.
     this.startDragMouseX = e.clientX;
     this.startDragMouseY = e.clientY;
-    Blockly.dragMode_ = 1;
+    Blockly.dragMode_ = 2;
     Blockly.BlockSvg.onMouseUpWrapper_ = Blockly.bindEvent_(document,
         'mouseup', this, this.onMouseUp_);
     Blockly.BlockSvg.onMouseMoveWrapper_ = Blockly.bindEvent_(document,
@@ -679,6 +679,9 @@ Blockly.BlockSvg.prototype.onMouseMove_ = function(e) {
     Blockly.removeAllRanges();
     var dx = e.clientX - this_.startDragMouseX;
     var dy = e.clientY - this_.startDragMouseY;
+    //fix scale
+    dx /= Blockly.mainWorkspace.scale;
+    dy /= Blockly.mainWorkspace.scale;
     if (Blockly.dragMode_ == 1) {
       // Still dragging within the sticky DRAG_RADIUS.
       var dr = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
@@ -1054,7 +1057,8 @@ Blockly.BlockSvg.disposeUiStep_ = function(clone, rtl) {
         (rtl ? -1 : 1) * clone.bBox_.width / 2 * percent;
     var y = clone.translateY_ + clone.bBox_.height * percent;
     var translate = x + ', ' + y;
-    var scale = 1 - percent;
+    //fix scale
+    var scale = (1 - percent) * Blockly.mainWorkspace.scale;
     clone.setAttribute('transform', 'translate(' + translate + ')' +
         ' scale(' + scale + ')');
     var closure = function() {
@@ -1072,13 +1076,13 @@ Blockly.BlockSvg.prototype.connectionUiEffect = function() {
 
   // Determine the absolute coordinates of the inferior block.
   var xy = Blockly.getSvgXY_(/** @type {!Element} */ (this.svgGroup_));
-  // Offset the coordinates based on the two connection types.
+  // Offset the coordinates based on the two connection types, fix scale
   if (this.outputConnection) {
-    xy.x += this.RTL ? 3 : -3;
-    xy.y += 13;
+    xy.x += (this.RTL ? 3 : -3) * Blockly.mainWorkspace.scale;
+    xy.y += 13 * Blockly.mainWorkspace.scale;
   } else if (this.previousConnection) {
-    xy.x += this.RTL ? -23 : 23;
-    xy.y += 3;
+    xy.x += (this.RTL ? -23 : 23) * Blockly.mainWorkspace.scale;
+    xy.y += 3 * Blockly.mainWorkspace.scale;
   }
   var ripple = Blockly.createSvgElement('circle',
       {'cx': xy.x, 'cy': xy.y, 'r': 0, 'fill': 'none',
@@ -1100,7 +1104,7 @@ Blockly.BlockSvg.connectionUiStep_ = function(ripple) {
   if (percent > 1) {
     goog.dom.removeNode(ripple);
   } else {
-    ripple.setAttribute('r', percent * 25);
+    ripple.setAttribute('r', percent * 25 * Blockly.mainWorkspace.scale);
     ripple.style.opacity = 1 - percent;
     var closure = function() {
       Blockly.BlockSvg.connectionUiStep_(ripple);
