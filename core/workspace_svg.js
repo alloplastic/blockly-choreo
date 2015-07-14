@@ -811,10 +811,10 @@ Blockly.WorkspaceSvg.prototype.zoom  = function(x ,y , type) {
   var g = this.getCanvas();
   center.x = x;
   center.y = y;
-  center = center.matrixTransform(Blockly.mainWorkspace.getCanvas().getCTM().inverse());
+  center = center.matrixTransform(this.getCanvas().getCTM().inverse());
   var x = center.x;
   var y = center.y;
-  var canvas = Blockly.mainWorkspace.getCanvas();
+  var canvas = this.getCanvas();
   // scale factor
   var scale = (type == 1)?speed:1/speed;
   var matrix = canvas.getCTM().translate(-(x*(scale-1)),-(y*(scale-1))).scale(scale);
@@ -845,7 +845,7 @@ Blockly.WorkspaceSvg.prototype.zoomCenter  = function(type) {
 Blockly.WorkspaceSvg.prototype.zoomReset  = function() {
   var metrics = this.getMetrics();
   Blockly.hideChaff();
-  Blockly.mainWorkspace.scrollbar.set(-metrics.contentLeft, -metrics.contentTop);
+  this.scrollbar.set(-metrics.contentLeft, -metrics.contentTop);
   this.scale = 1;
   this.updateZoom();
   this.updateGridPattern_();
